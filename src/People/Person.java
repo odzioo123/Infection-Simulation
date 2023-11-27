@@ -29,7 +29,7 @@ public class Person {
     public int getTimeToSick100() { return this.timeToSick100; }
     public int getTimeToSick50() { return this.timeToSick50; }
     public int getTimeToSick() { return (this.timeToSick50 + this.timeToSick100 - 75); }
-    public double getSicknessProbability() {
+    public double getSicknessProbability() { // zwraca 0-50 punktów procentowych
         int sick50 = 75 - this.timeToSick50;
         int sick100 = 75 - this.timeToSick100;
         double probability = sick100/75. * 50;

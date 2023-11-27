@@ -7,9 +7,7 @@ import java.util.Map;
 public class PersonCareTaker {
     private Person person;
     private Map<Integer, PersonMemento> mementoMap;
-    PersonCareTaker(Person person) {
-        mementoMap = new HashMap<>();
-    }
+    PersonCareTaker(Person person) { mementoMap = new HashMap<>(); }
 
     public void save(Integer t)
     {
@@ -25,7 +23,8 @@ public class PersonCareTaker {
             person.setState(snapshot.state);
             return true;
         }
-        else{
+        else
+        {
             return false;
         }
     }
