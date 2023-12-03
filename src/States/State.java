@@ -1,5 +1,7 @@
 package States;
 
+import java.awt.*;
+
 public interface State {
-    public String getColor();
+    public Color getColor();
 }

@@ -1,24 +1,151 @@
 package Others;
 
 import People.Person;
+import People.PersonMemento;
 import States.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
 
 public class Simulation {
-    public static double n;
-    public static double m;
+    public static int n;
+    public static int m;
     List<Person> personList;
+    HashMap<Integer, List<PersonMemento>> saveMap = new HashMap<Integer, List<PersonMemento>>();
+    private JFrame window;
+    private Board board;
+    private Bar bar;
+    private int seconds;
+    private boolean stop;
 
-    public Simulation(double n, double m) {
+    public HashMap<Integer, List<PersonMemento>> getSaveMap() {
+        return saveMap;
+    }
+
+    public Simulation(int n, int m) {
         Simulation.n = n;
         Simulation.m = m;
         this.personList = new ArrayList<Person>();
+        this.window = new JFrame();
+        this.board = new Board(this);
+        this.seconds = 0;
+        this.bar = new Bar(this);
+        this.stop = false;
     }
 
+    public void init() {
+        window.setTitle("Simulation");
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.add(this.board, BorderLayout.CENTER);
+        window.add(this.bar, BorderLayout.PAGE_END);
+        bar.createButtons();
+        window.pack();
+        window.setResizable(false);
+        window.setVisible(true);
+    }
+
+    public void restore(Integer second) {
+        personList.clear();
+        for(PersonMemento memento : saveMap.get(second))
+        {
+            personList.add(new Person(memento));
+        }
+    }
+
+    public void run(boolean immune) {
+        while (true)
+        {
+            for (int i = 0; i < 25; i++)
+            {
+                sleep();
+                checkBorders();
+                spawnPerson(immune);
+                spreadDisease();
+                board.repaint();
+            }
+
+            seconds++;
+            System.out.println(seconds);
+
+            List<PersonMemento> savePersonList = new ArrayList<PersonMemento>();
+            for(Person person : personList)
+            {
+                savePersonList.add(person.memento());
+            }
+            saveMap.put(seconds,savePersonList);
+
+            System.out.println(Arrays.toString(getSaveMap().keySet().toArray(new Integer[0])));
+
+            bar.refreshComboBox();
+
+            if(this.stop)
+            {
+                stop = false;
+                break;
+            }
+
+        }
+    }
+
+    public void stop()
+    {
+        this.stop = true;
+    }
+    public void sleep()
+    {
+        try
+        {
+            Thread.sleep(1000 / 25);
+        } catch (InterruptedException exception)
+        {
+            exception.printStackTrace();
+        }
+    }
+    public void createPops(boolean immune)
+    {
+        for (int i = 0; i< 400; i++)
+        {
+            double x = Math.random()*50;
+            double y = Math.random()*50;
+            double personState = Math.random();
+            if(immune)
+            {
+                if(personState < 0.2)
+                {
+                    this.personList.add(new Person(x, y, new ResistantState()));
+                }
+                else if(personState < 0.8)
+                {
+                    this.personList.add(new Person(x, y, new HealthyState()));
+                }
+                else if(personState < 0.9)
+                {
+                    this.personList.add(new Person(x,y,new SickSymptomsState()));
+                }
+                else
+                {
+                    this.personList.add(new Person(x,y,new SickNoSymptomsState()));
+                }
+            }
+            else
+            {
+                if(personState < 0.8)
+                {
+                    this.personList.add(new Person(x, y, new HealthyState()));
+                }
+                else if(personState < 0.9)
+                {
+                    this.personList.add(new Person(x,y,new SickSymptomsState()));
+                }
+                else
+                {
+                    this.personList.add(new Person(x,y,new SickNoSymptomsState()));
+                }
+            }
+        }
+    }
     public void checkBorders()
     {
         Iterator<Person> iterator = personList.iterator();
@@ -26,17 +153,31 @@ public class Simulation {
         {
             Person person = iterator.next();
             Random random = new Random();
-            double xCord = 0 + (2.5 - 0) * random.nextDouble();
-            double yCord = 0 + (2.5 - 0) * random.nextDouble();
+            double xCord = -0.1 + (0.2) * random.nextDouble();
+            double yCord = -0.1 + (0.2) * random.nextDouble();
             Vector2D vector = new Vector2D(xCord, yCord);
-            if(!person.move(vector))
+            double velocity = random.nextDouble() * 0.1;
+            xCord = velocity * xCord/vector.abs();
+            yCord = velocity * xCord/vector.abs();
+            Vector2D vectorReal = new Vector2D(xCord, yCord);
+            if(!person.move(vectorReal))
             {
                 iterator.remove();
             }
         }
     }
 
-    void spawnWeakPerson() //TODO Procenty spawnowania chorych
+    public void spawnPerson(boolean immune)
+    {
+        if(immune)
+            spawnWeakPerson();
+        else
+        {
+            spawnStrongPerson();
+        }
+    }
+
+    public void spawnWeakPerson() // 10% - Sick 90% - Healthy
     {
         Random random = new Random();
         int randomState = random.nextInt(20 - 1 + 1) + 1;
@@ -49,46 +190,46 @@ public class Simulation {
         spawnPerson(state);
     }
 
-    void spawnStrongPerson() //TODO Procenty spawnowania chorych
+    public void spawnStrongPerson() // 10% - resistant 10% - Sick 80% - Healthy
     {
         Random random = new Random();
-        int randomState = random.nextInt(4 - 1 + 1) + 1;
+        int randomState = random.nextInt(20 - 1 + 1) + 1;
         State state = switch (randomState) {
-            case 1 -> new HealthyState();
-            case 2 -> new SickNoSymptomsState();
-            case 3 -> new SickSymptomsState();
-            case 4 -> new ResistantState();
-            default -> null;
+            case 1 -> new SickNoSymptomsState();
+            case 2 -> new SickSymptomsState();
+            case 3, 4 -> new ResistantState();
+            default -> new HealthyState();
         };
         spawnPerson(state);
     }
 
-    private void spawnPerson(State state) {
+    public void spawnPerson(State state) {
         Random random = new Random();
-        double randomLocation = n + (m - n) * random.nextDouble();
+        double randomLocationX = (n) * random.nextDouble();
+        double randomLocationY = (m) * random.nextDouble();
         int randomLocationLine = random.nextInt(4 - 1 + 1) + 1;
         double x;
         double y;
         Person person = null;
         switch (randomLocationLine) {
             case 1 -> {
-                x = randomLocation;
+                x = randomLocationX;
                 y = 0.0;
                 person = new Person(x, y, state);
             }
             case 2 -> {
                 x = n;
-                y = randomLocation;
+                y = randomLocationY;
                 person = new Person(x, y, state);
             }
             case 3 -> {
-                x = randomLocation;
+                x = randomLocationX;
                 y = m;
                 person = new Person(x, y, state);
             }
             case 4 -> {
                 x = 0.0;
-                y = randomLocation;
+                y = randomLocationY;
                 person = new Person(x, y, state);
             }
         }
@@ -123,7 +264,7 @@ public class Simulation {
                 {
                     person.setTimeToSick50(person.getTimeToSick50() - 1);
                 }
-                if(person.getTimeToSick100() == 2)
+                if(timeToSick == 2)
                 {
                     person.setTimeToSick100(person.getTimeToSick100() - 1);
                 }
@@ -134,15 +275,19 @@ public class Simulation {
                     if (randomSickness < person.getSicknessProbability())
                     {
                         int randomSymptoms = random.nextInt(2) + 1;
+                        System.out.println("Zakażone " + person.getX() + " " + person.getY()); // Sprawdzenie
+                        System.out.println("Szansa: " + person.getSicknessProbability());
                         if(randomSymptoms == 1)
                         {
-                            State state = new SickNoSymptomsState();
-                            person.setState(state);
+                            person.setState(new SickNoSymptomsState());
+                            int randomSicknessTime = random.nextInt(11);
+                            person.setTimeToSick100((20+randomSicknessTime)*25);
                         }
                         else
                         {
-                            State state = new SickSymptomsState();
-                            person.setState(state);
+                            person.setState(new SickSymptomsState());
+                            int randomSicknessTime = random.nextInt(11);
+                            person.setTimeToSick100((20+randomSicknessTime)*25);
                         }
                     }
                     else
@@ -152,8 +297,18 @@ public class Simulation {
                     }
                 }
             }
+            else if(person.getState() instanceof SickNoSymptomsState || person.getState() instanceof SickSymptomsState)
+            {
+                person.setTimeToSick100(person.getTimeToSick100() - 1);
+                if(person.getTimeToSick100() == 0)
+                {
+                    person.setState(new ResistantState());
+                }
+            }
         }
     }
+
+
 
     private boolean canInfect(Person person1, Person person2)
     {
@@ -164,4 +319,12 @@ public class Simulation {
         }
         return false;
     }
+
+    public int getSeconds() {
+        return seconds;
+    }
+
+
 }
+
+

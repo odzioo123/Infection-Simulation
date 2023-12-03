@@ -1,7 +1,10 @@
 package States;
+
+import java.awt.*;
+
 public class ResistantState implements State {
     @Override
-    public String getColor() {
-        return "blue";
+    public Color getColor() {
+        return Color.BLUE;
     }
 }

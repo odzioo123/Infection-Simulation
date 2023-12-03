@@ -2,6 +2,7 @@ package Others;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        SimulationController simulationController = new SimulationController();
+        simulationController.start();
     }
 }

@@ -1,7 +1,10 @@
 package Others;
 
 public class SimulationController {
-    double n = 10.0;
-    double m = 10.0;
-    Simulation simulation = new Simulation(n,m);
+    Simulation simulation = new Simulation(50, 50);
+
+    public void start()
+    {
+        simulation.init();
+    }
 }

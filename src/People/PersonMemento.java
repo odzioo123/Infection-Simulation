@@ -1,26 +1,44 @@
 package People;
-import States.*;
+import States.State;
+
 
 public class PersonMemento {
-    public double x;
-    public double y;
-    public State state;
-    public int timeToSick100;
-    public int timeToSick50;
-    public PersonMemento(double x, double y, State state, int timeToSick100, int timeToSick50 ) {
+    private double x;
+    private double y;
+    private State state;
+    private int timeToSick100;
+    private int timeToSick50;
+
+    public PersonMemento(double x, double y, State state, int timeToSick50, int timeToSick100) {
         this.x = x;
         this.y = y;
-
-        if(state instanceof HealthyState) {
-            this.state = new HealthyState();
-        } else if (state instanceof ResistantState) {
-            this.state = new ResistantState();
-        } else if (state instanceof SickNoSymptomsState) {
-            this.state = new SickNoSymptomsState();
-        } else if (state instanceof SickSymptomsState) {
-            this.state = new SickSymptomsState();
-        }
-        this.timeToSick100 = timeToSick100;
+        this.state = state;
         this.timeToSick50 = timeToSick50;
+        this.timeToSick100 = timeToSick100;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public int getTimeToSick100() {
+        return timeToSick100;
+    }
+
+    public int getTimeToSick50() {
+        return timeToSick50;
     }
 }
+
+
+
+
+

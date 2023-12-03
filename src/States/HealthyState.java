@@ -1,8 +1,11 @@
 package States;
-import States.State;
+
+import java.awt.*;
+
 public class HealthyState implements State {
+
     @Override
-    public String getColor() {
-        return "green";
+    public Color getColor() {
+        return Color.GREEN;
     }
 }
